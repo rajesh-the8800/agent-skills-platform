@@ -179,6 +179,9 @@ export class SkillSubmissionsService {
     const tags = toStringArray(dto.tags).map((t) => t.trim()).filter(Boolean);
 
     try {
+      const useCases = toStringArray(dto.useCases).map((s) => s.trim()).filter(Boolean);
+      const limitations = toStringArray(dto.limitations).map((s) => s.trim()).filter(Boolean);
+
       const skill = await this.prisma.skill.create({
         data: {
           slug: dto.slug,
@@ -188,6 +191,8 @@ export class SkillSubmissionsService {
           creatorId: dto.userId,
           tags,
           supportedAgents: toStringArray(dto.supportedAgents),
+          useCases,
+          limitations,
           installCount: 0,
           categories:
             categoryIds.length > 0

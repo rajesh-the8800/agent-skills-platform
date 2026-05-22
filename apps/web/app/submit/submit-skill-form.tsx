@@ -34,6 +34,8 @@ export function SubmitSkillForm({ userId, categories }: Props) {
   const [version, setVersion] = React.useState('1.0.0');
   const [agents, setAgents] = React.useState<Set<string>>(new Set(['Claude']));
   const [categoryIds, setCategoryIds] = React.useState<Set<string>>(new Set());
+  const [useCases, setUseCases] = React.useState<string[]>(['']);
+  const [limitations, setLimitations] = React.useState<string[]>(['']);
   const [file, setFile] = React.useState<File | null>(null);
   const [drag, setDrag] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
@@ -46,6 +48,18 @@ export function SubmitSkillForm({ userId, categories }: Props) {
     const next = slugify(name);
     setSlug(next);
   }, [name, slugManual]);
+
+  const updateListItem = (
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    index: number,
+    value: string,
+  ) => setter((prev) => prev.map((v, i) => (i === index ? value : v)));
+
+  const addListItem = (setter: React.Dispatch<React.SetStateAction<string[]>>) =>
+    setter((prev) => [...prev, '']);
+
+  const removeListItem = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) =>
+    setter((prev) => prev.filter((_, i) => i !== index));
 
   const toggleAgent = (a: string) => {
     setAgents((prev) => {
@@ -89,7 +103,7 @@ export function SubmitSkillForm({ userId, categories }: Props) {
     setFile(f);
   };
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (status === 'unauthenticated' || !userId) {
       setLoginOpen(true);
@@ -129,6 +143,8 @@ export function SubmitSkillForm({ userId, categories }: Props) {
     form.append('supportedAgents', JSON.stringify(Array.from(agents)));
     form.append('categoryIds', JSON.stringify(Array.from(categoryIds)));
     form.append('version', version.trim());
+    form.append('useCases', JSON.stringify(useCases.map((s) => s.trim()).filter(Boolean)));
+    form.append('limitations', JSON.stringify(limitations.map((s) => s.trim()).filter(Boolean)));
 
     setLoading(true);
     setUploadPct(null);
@@ -212,6 +228,8 @@ export function SubmitSkillForm({ userId, categories }: Props) {
             setAgents(new Set(['Claude']));
             setCategoryIds(new Set());
             setSlugManual(false);
+            setUseCases(['']);
+            setLimitations(['']);
           }}
         >
           Submit another skill
@@ -296,6 +314,84 @@ export function SubmitSkillForm({ userId, categories }: Props) {
               placeholder="What it does, prerequisites, and how buyers should use it."
             />
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Use cases</h2>
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          List the primary workflows or scenarios this skill is designed for.
+        </p>
+        <div className="mt-4 space-y-2">
+          {useCases.map((item, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                value={item}
+                onChange={(e) => updateListItem(setUseCases, i, e.target.value)}
+                maxLength={300}
+                className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none ring-blue-500/30 focus:ring-2 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                placeholder={`Use case ${i + 1}`}
+              />
+              {useCases.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeListItem(setUseCases, i)}
+                  className="shrink-0 text-neutral-400 hover:text-red-500"
+                  aria-label="Remove"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+          {useCases.length < 20 && (
+            <button
+              type="button"
+              onClick={() => addListItem(setUseCases)}
+              className="mt-1 text-xs font-medium text-blue-600 hover:underline"
+            >
+              + Add use case
+            </button>
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Known limitations</h2>
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          Be upfront about what this skill cannot do or where it may fall short.
+        </p>
+        <div className="mt-4 space-y-2">
+          {limitations.map((item, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                value={item}
+                onChange={(e) => updateListItem(setLimitations, i, e.target.value)}
+                maxLength={300}
+                className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none ring-blue-500/30 focus:ring-2 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                placeholder={`Limitation ${i + 1}`}
+              />
+              {limitations.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeListItem(setLimitations, i)}
+                  className="shrink-0 text-neutral-400 hover:text-red-500"
+                  aria-label="Remove"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+          {limitations.length < 20 && (
+            <button
+              type="button"
+              onClick={() => addListItem(setLimitations)}
+              className="mt-1 text-xs font-medium text-blue-600 hover:underline"
+            >
+              + Add limitation
+            </button>
+          )}
         </div>
       </section>
 

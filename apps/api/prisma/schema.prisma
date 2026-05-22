@@ -36,6 +36,8 @@ model Skill {
   thumbnailKey     String?
   tags             String[]    @default([])
   supportedAgents  String[]    @default([])
+  useCases         String[]    @default([])
+  limitations      String[]    @default([])
   installCount     Int         @default(0)
   viewCount        Int         @default(0)
   status           SkillStatus @default(PENDING)

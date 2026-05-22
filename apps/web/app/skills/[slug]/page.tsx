@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { Button } from '@agent-skills/ui';
+import { auth } from '@/auth';
+import { getSkillSubmitUserId } from '@/lib/skill-submit-user';
 
 import { getRelatedSkills, getSkillDetail } from '../_detail-data';
 import { RatingHistogramBars } from '../components/rating-histogram';
@@ -88,8 +90,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function SkillDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const skill = await getSkillDetail(slug);
+  const [skill, session] = await Promise.all([getSkillDetail(slug), auth()]);
   if (!skill) notFound();
+
+  const userId = getSkillSubmitUserId(session);
+  const isOwner = !!userId && userId === skill.creatorId;
 
   const related = await getRelatedSkills(skill.slug, skill.categories, 3);
   const reviewCount = skill.reviews.length;
@@ -153,7 +158,7 @@ export default async function SkillDetailPage({ params }: { params: Promise<{ sl
             </div>
             <div className="min-w-0 flex-1 space-y-3">
               <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white md:text-4xl">
-                {skill.slug}
+                {skill.name}
               </h1>
               <p className="text-sm text-neutral-500 dark:text-neutral-400">by {skill.creatorName}</p>
               <p className="max-w-3xl text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
@@ -283,6 +288,14 @@ export default async function SkillDetailPage({ params }: { params: Promise<{ sl
         <span className="rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs font-medium dark:border-neutral-700 dark:bg-neutral-900">
           v{skill.version}
         </span>
+        {isOwner && (
+          <Link
+            href={`/skills/${skill.slug}/edit`}
+            className="ml-auto rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          >
+            Edit skill
+          </Link>
+        )}
       </div>
 
       {/* See it in action */}

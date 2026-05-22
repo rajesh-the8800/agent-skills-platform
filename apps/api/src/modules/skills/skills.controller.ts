@@ -1,9 +1,11 @@
-import { Controller, Get, HttpCode, Inject, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
+import { InternalAuthGuard } from '../../common/guards/internal-auth.guard';
 import { SkillsService } from './skills.service';
 import { ListSkillsQueryDto } from './dto/list-skills.query';
+import { UpdateSkillDto } from './dto/update-skill.dto';
 
 @ApiTags('skills')
 @Controller('skills')
@@ -39,6 +41,12 @@ export class SkillsController {
   @Post(':skillId/view')
   async incrementView(@Param('skillId') skillId: string) {
     await this.skills.incrementView(skillId);
+  }
+
+  @UseGuards(InternalAuthGuard)
+  @Patch(':slug')
+  async update(@Param('slug') slug: string, @Body() body: UpdateSkillDto) {
+    return this.skills.update(slug, body);
   }
 }
 

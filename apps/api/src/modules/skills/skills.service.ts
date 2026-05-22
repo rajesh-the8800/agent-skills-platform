@@ -1,9 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { SkillStatus } from '@prisma/client';
-import type { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { ListSkillsQueryDto } from './dto/list-skills.query';
+import type { UpdateSkillDto } from './dto/update-skill.dto';
 
 const include = {
   creator: { select: { name: true, email: true } },
@@ -121,5 +121,42 @@ export class SkillsService {
       where: { id: skillId, deletedAt: null, status: SkillStatus.PUBLISHED },
       data: { viewCount: { increment: 1 } },
     });
+  }
+
+  async update(slug: string, dto: UpdateSkillDto) {
+    const skill = await this.prisma.skill.findFirst({
+      where: { slug, deletedAt: null },
+      select: { id: true, creatorId: true },
+    });
+    if (!skill) throw new NotFoundException('Skill not found');
+    if (skill.creatorId !== dto.userId) throw new ForbiddenException('You do not own this skill');
+
+    const categoryIds = dto.categoryIds;
+    if (categoryIds !== undefined && categoryIds.length > 0) {
+      const count = await this.prisma.category.count({ where: { id: { in: categoryIds } } });
+      if (count !== categoryIds.length) throw new NotFoundException('One or more categories are invalid');
+    }
+
+    const data = {
+      ...(dto.name !== undefined && { name: dto.name.trim() }),
+      ...(dto.shortDescription !== undefined && { shortDescription: dto.shortDescription.trim() }),
+      ...(dto.description !== undefined && { description: dto.description.trim() }),
+      ...(dto.tags !== undefined && { tags: dto.tags.map((t) => t.trim()).filter(Boolean) }),
+      ...(dto.supportedAgents !== undefined && { supportedAgents: dto.supportedAgents }),
+      ...(dto.useCases !== undefined && { useCases: dto.useCases.map((s) => s.trim()).filter(Boolean) }),
+      ...(dto.limitations !== undefined && { limitations: dto.limitations.map((s) => s.trim()).filter(Boolean) }),
+    };
+
+    if (categoryIds !== undefined) {
+      await this.prisma.skillCategory.deleteMany({ where: { skillId: skill.id } });
+      if (categoryIds.length > 0) {
+        await this.prisma.skillCategory.createMany({
+          data: categoryIds.map((categoryId) => ({ skillId: skill.id, categoryId })),
+        });
+      }
+    }
+
+    await this.prisma.skill.update({ where: { id: skill.id }, data });
+    return { slug };
   }
 }
