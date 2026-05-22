@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npx prisma *)",
+      "Bash(node -e \"require\\('./node_modules/.bin/prisma'\\)\")",
+      "Bash(./node_modules/.bin/prisma generate *)",
+      "Bash(/Users/rajesh/Documents/agent-skills-platform/node_modules/.bin/prisma generate *)",
+      "Bash(ls ~/.nvm/versions/node/)",
+      "Read(//Users/rajesh/.nvm/versions/node/**)",
+      "Bash(~/.nvm/versions/node/v20.19.0/bin/node ~/.nvm/versions/node/v20.19.0/bin/npx --prefix /Users/rajesh/Documents/agent-skills-platform/apps/api prisma generate)",
+      "Bash(~/.nvm/versions/node/v20.19.0/bin/node ~/.nvm/versions/node/v20.19.0/bin/npx prisma generate --schema=/Users/rajesh/Documents/agent-skills-platform/apps/api/prisma/schema.prisma)",
+      "Bash(~/.nvm/versions/node/v20.19.0/bin/node ~/.nvm/versions/node/v20.19.0/bin/npx --yes tsc --version)",
+      "Bash(~/.nvm/versions/node/v20.19.0/bin/node ~/.nvm/versions/node/v20.19.0/bin/npx tsc --noEmit)"
+    ]
+  }
+}
