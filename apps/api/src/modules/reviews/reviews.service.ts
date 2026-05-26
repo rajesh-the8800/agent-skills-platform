@@ -1,4 +1,5 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -20,23 +21,32 @@ export class ReviewsService {
     });
     if (existing) throw new ConflictException('You have already reviewed this skill');
 
-    const [review] = await this.prisma.$transaction([
-      this.prisma.review.create({
-        data: { skillId, userId: dto.userId, body: dto.body, stars: dto.stars },
-        include: { user: { select: { name: true, email: true } } },
-      }),
-      this.prisma.rating.upsert({
-        where: { skillId_userId: { skillId, userId: dto.userId } },
-        create: { skillId, userId: dto.userId, stars: dto.stars },
-        update: { stars: dto.stars },
-      }),
-    ]);
+    let review;
+    try {
+      [review] = await this.prisma.$transaction([
+        this.prisma.review.create({
+          data: { skillId, userId: dto.userId, body: dto.body, stars: dto.stars },
+          include: { user: { select: { name: true, email: true } } },
+        }),
+        this.prisma.rating.upsert({
+          where: { skillId_userId: { skillId, userId: dto.userId } },
+          create: { skillId, userId: dto.userId, stars: dto.stars },
+          update: { stars: dto.stars },
+        }),
+      ]);
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+        throw new ConflictException('You have already reviewed this skill');
+      }
+      throw e;
+    }
 
     return {
       id: review.id,
       body: review.body,
       stars: dto.stars,
-      author: review.user.name ?? review.user.email,
+      author: (review.user as { name: string | null; email: string }).name ??
+              (review.user as { name: string | null; email: string }).email,
       createdAt: review.createdAt,
     };
   }

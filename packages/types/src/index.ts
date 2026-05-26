@@ -1,15 +1,5 @@
 export type ID = string;
 
-export type UserDto = {
-  id: ID;
-  name: string | null;
-  email: string;
-  avatar: string | null;
-  provider: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
 export type SkillCardDto = {
   id: ID;
   slug: string;

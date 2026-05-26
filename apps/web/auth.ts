@@ -32,8 +32,7 @@ async function syncUserToApi(payload: {
   const apiUrl = process.env.API_URL ?? 'http://localhost:3001';
   const secret = process.env.INTERNAL_API_SECRET;
   if (!secret) {
-    console.error('INTERNAL_API_SECRET is not set');
-    return null;
+    throw new Error('INTERNAL_API_SECRET is not set — cannot sync user to API');
   }
 
   const res = await fetch(`${apiUrl}/auth/sync`, {

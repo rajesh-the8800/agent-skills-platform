@@ -1,5 +1,5 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { SkillStatus } from '@prisma/client';
+import { Prisma, SkillStatus } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { ListSkillsQueryDto } from './dto/list-skills.query';
@@ -59,16 +59,10 @@ export class SkillsService {
         : {}),
     };
 
+    // sort=rating uses raw SQL because the averageRating column is not yet in the
+    // generated Prisma client (requires `prisma generate` after the migration).
     if (query.sort === 'rating') {
-      const all = await this.prisma.skill.findMany({ where, include });
-      const mapped = all.map(toCard);
-      mapped.sort((a, b) => b.averageRating - a.averageRating);
-      return {
-        items: mapped.slice((page - 1) * limit, page * limit),
-        page,
-        limit,
-        total: mapped.length,
-      };
+      return this.listByRating(query.q, query.category, page, limit);
     }
 
     const orderBy: Prisma.SkillOrderByWithRelationInput =
@@ -76,14 +70,66 @@ export class SkillsService {
 
     const [total, skills] = await this.prisma.$transaction([
       this.prisma.skill.count({ where }),
-      this.prisma.skill.findMany({
-        where,
-        orderBy,
-        skip: (page - 1) * limit,
-        take: limit,
-        include,
-      }),
+      this.prisma.skill.findMany({ where, orderBy, skip: (page - 1) * limit, take: limit, include }),
     ]);
+
+    return { items: skills.map(toCard), page, limit, total };
+  }
+
+  private async listByRating(
+    q: string | undefined,
+    category: string | undefined,
+    page: number,
+    limit: number,
+  ) {
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`s."deletedAt" IS NULL AND s.status = 'PUBLISHED'`,
+    ];
+    if (q) {
+      conditions.push(
+        Prisma.sql`(s.name ILIKE ${`%${q}%`} OR s."shortDescription" ILIKE ${`%${q}%`} OR s.tags @> ARRAY[${q}]::text[])`,
+      );
+    }
+    if (category) {
+      conditions.push(
+        Prisma.sql`EXISTS (SELECT 1 FROM "SkillCategory" sc JOIN "Category" cat ON cat.id = sc."categoryId" WHERE sc."skillId" = s.id AND cat.name = ${category})`,
+      );
+    }
+    const sqlWhere = Prisma.join(conditions, ' AND ');
+    const offset = (page - 1) * limit;
+
+    // Compute average inline from Rating rows — no stored column needed.
+    const [countRows, idRows] = await Promise.all([
+      this.prisma.$queryRaw<[{ count: bigint }]>(
+        Prisma.sql`SELECT COUNT(*) AS count FROM "Skill" s WHERE ${sqlWhere}`,
+      ),
+      this.prisma.$queryRaw<{ id: string }[]>(
+        Prisma.sql`
+          SELECT s.id
+          FROM "Skill" s
+          LEFT JOIN "Rating" r ON r."skillId" = s.id
+          WHERE ${sqlWhere}
+          GROUP BY s.id
+          ORDER BY COALESCE(AVG(r.stars), 0) DESC
+          LIMIT ${limit} OFFSET ${offset}
+        `,
+      ),
+    ]);
+
+    const total = Number(countRows[0]?.count ?? 0);
+    const orderedIds = idRows.map((r) => r.id);
+
+    if (orderedIds.length === 0) {
+      return { items: [], page, limit, total };
+    }
+
+    const skills = await this.prisma.skill.findMany({
+      where: { id: { in: orderedIds } },
+      include,
+    });
+
+    const idPos = new Map(orderedIds.map((id, i) => [id, i]));
+    skills.sort((a, b) => (idPos.get(a.id) ?? 0) - (idPos.get(b.id) ?? 0));
 
     return { items: skills.map(toCard), page, limit, total };
   }
@@ -108,6 +154,7 @@ export class SkillsService {
     const { creator, ratings, categories, versions, ...rest } = skill;
     return {
       ...rest,
+      ratings,
       creatorName: creator.name ?? creator.email,
       averageRating: avgRating(ratings),
       categories: categories.map((c) => c.category.name),

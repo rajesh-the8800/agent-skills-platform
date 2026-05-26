@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import path from 'node:path';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -116,10 +116,26 @@ function scanContent(filePath: string, content: string): Finding[] {
 }
 
 @Injectable()
-export class ScannerService {
+export class ScannerService implements OnApplicationBootstrap {
   private readonly logger = new Logger(ScannerService.name);
 
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+
+  async onApplicationBootstrap() {
+    const cutoff = new Date(Date.now() - 5 * 60 * 1000);
+    const stuck = await this.prisma.skill.findMany({
+      where: { status: 'PENDING', createdAt: { lt: cutoff }, deletedAt: null },
+      include: {
+        versions: { where: { deletedAt: null }, orderBy: { createdAt: 'desc' }, take: 1 },
+      },
+    });
+    for (const skill of stuck) {
+      const version = skill.versions[0];
+      if (!version) continue;
+      this.logger.warn(`Re-scanning stuck PENDING skill ${skill.id}`);
+      void this.scan(skill.id, version.skillMd, version.files as Record<string, string>);
+    }
+  }
 
   async scan(skillId: string, skillMd: string, files: Record<string, string>): Promise<void> {
     try {

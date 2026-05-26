@@ -145,6 +145,7 @@ model Review {
   userId String
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([skillId, userId])
   @@index([skillId])
   @@index([userId])
 }
