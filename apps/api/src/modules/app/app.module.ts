@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { HealthController } from './health.controller';
+import { AdminModule } from '../admin/admin.module';
 import { AuthModule } from '../auth/auth.module';
 import { DownloadsModule } from '../downloads/downloads.module';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -21,6 +22,7 @@ import { SkillsModule } from '../skills/skills.module';
       throttlers: [{ name: 'default', ttl: 60000, limit: 200 }],
     }),
     PrismaModule,
+    AdminModule,
     AuthModule,
     DownloadsModule,
     CategoriesModule,

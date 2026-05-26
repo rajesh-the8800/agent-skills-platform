@@ -21,7 +21,8 @@ export class AuthService {
         avatar: dto.avatar ?? undefined,
         provider: dto.provider,
       },
+      select: { id: true, role: true },
     });
-    return { id: user.id };
+    return { id: user.id, role: user.role };
   }
 }

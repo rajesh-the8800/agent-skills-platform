@@ -100,6 +100,16 @@ export function UserNavMenu() {
           role="menu"
           className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-800 dark:bg-neutral-950"
         >
+          {session.user.role === 'ADMIN' && (
+            <Link
+              role="menuitem"
+              href="/admin"
+              className="block px-4 py-2.5 text-sm font-medium text-purple-700 hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950/30"
+              onClick={() => setOpen(false)}
+            >
+              Admin panel
+            </Link>
+          )}
           <Link
             role="menuitem"
             href="/submit"

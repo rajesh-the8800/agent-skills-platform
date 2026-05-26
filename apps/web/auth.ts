@@ -56,7 +56,7 @@ async function syncUserToApi(payload: {
     return null;
   }
 
-  return (await res.json()) as { id: string };
+  return (await res.json()) as { id: string; role: string };
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -100,6 +100,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error('Could not create or update your account. Is the API running?');
         }
         token.dbUserId = synced.id;
+        token.dbUserRole = synced.role;
         if (p.picture) {
           token.picture = p.picture;
         }
@@ -109,6 +110,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
         session.user.id = (token.dbUserId as string) ?? '';
+        session.user.role = (token.dbUserRole as string) ?? 'USER';
         if (token.picture) {
           session.user.image = token.picture as string;
         }

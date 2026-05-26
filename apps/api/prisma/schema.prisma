@@ -7,22 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
-  id        String   @id @default(cuid())
-  name      String?
-  email     String   @unique
-  avatar    String?
-  provider  String
-  skills    Skill[]  @relation("SkillCreator")
-  downloads Download[]
-  ratings   Rating[]
-  reviews   Review[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  avatar       String?
+  provider     String
+  role         UserRole @default(USER)
+  skills       Skill[]  @relation("SkillCreator")
+  downloads    Download[]
+  ratings      Rating[]
+  reviews      Review[]
+  adminReviews SkillAdminReview[] @relation("AdminReviewer")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 enum SkillStatus {
   PENDING
+  AWAITING_REVIEW
   PUBLISHED
   REJECTED
 }
@@ -50,11 +58,12 @@ model Skill {
   creatorId String
   creator   User   @relation("SkillCreator", fields: [creatorId], references: [id])
 
-  versions    SkillVersion[]
-  reviews     Review[]
-  ratings     Rating[]
-  downloads   Download[]
-  categories  SkillCategory[]
+  versions     SkillVersion[]
+  reviews      Review[]
+  ratings      Rating[]
+  downloads    Download[]
+  categories   SkillCategory[]
+  adminReviews SkillAdminReview[]
 
   @@index([creatorId])
   @@index([updatedAt])
@@ -148,5 +157,21 @@ model Review {
   @@unique([skillId, userId])
   @@index([skillId])
   @@index([userId])
+}
+
+model SkillAdminReview {
+  id        String   @id @default(cuid())
+  action    String
+  note      String?
+  createdAt DateTime @default(now())
+
+  skillId String
+  skill   Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  reviewerId String
+  reviewer   User   @relation("AdminReviewer", fields: [reviewerId], references: [id])
+
+  @@index([skillId])
+  @@index([reviewerId])
 }
 

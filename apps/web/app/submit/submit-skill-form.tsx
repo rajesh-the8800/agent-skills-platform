@@ -192,48 +192,54 @@ export function SubmitSkillForm({ userId, categories }: Props) {
 
   if (success) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-emerald-200 bg-emerald-50/80 p-8 text-center dark:border-emerald-900/60 dark:bg-emerald-950/40">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white">
-          ✓
+      <div className="mx-auto max-w-xl rounded-2xl border border-blue-200 bg-blue-50/80 p-8 text-center dark:border-blue-900/60 dark:bg-blue-950/30">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-md">
+          <svg viewBox="0 0 24 24" fill="none" className="h-7 w-7" aria-hidden="true">
+            <path d="M12 2L2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
-        <h2 className="mt-4 text-xl font-semibold text-neutral-900 dark:text-white">Skill published</h2>
+
+        <h2 className="mt-5 text-xl font-semibold text-neutral-900 dark:text-white">
+          Skill submitted for review
+        </h2>
+
         <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
-          <span className="font-mono text-neutral-800 dark:text-neutral-200">{success.slug}</span> is live in the
-          catalog API. Marketplace pages that still use demo data may not show it until wired to the API.
+          <span className="font-semibold text-neutral-800 dark:text-neutral-200">{success.slug}</span> has been
+          received and is pending admin approval. You'll be able to view it in the marketplace once it's approved.
         </p>
+
+        <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+          <span className="h-2 w-2 rounded-full bg-amber-400" />
+          Awaiting review
+        </div>
+
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <Link
-            href={`/skills/${encodeURIComponent(success.slug)}`}
-            className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            View skill page
-          </Link>
-          <Link
             href="/skills"
-            className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-800 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
+            className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
           >
             Browse marketplace
           </Link>
+          <button
+            type="button"
+            className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-800 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
+            onClick={() => {
+              setSuccess(null);
+              setName('');
+              setShortDescription('');
+              setDescription('');
+              setTagsRaw('');
+              setVersion('1.0.0');
+              setAgents(new Set(['Claude']));
+              setCategoryIds(new Set());
+              setSlugManual(false);
+              setUseCases(['']);
+              setLimitations(['']);
+            }}
+          >
+            Submit another skill
+          </button>
         </div>
-        <button
-          type="button"
-          className="mt-6 text-sm text-blue-600 hover:underline"
-          onClick={() => {
-            setSuccess(null);
-            setName('');
-            setShortDescription('');
-            setDescription('');
-            setTagsRaw('');
-            setVersion('1.0.0');
-            setAgents(new Set(['Claude']));
-            setCategoryIds(new Set());
-            setSlugManual(false);
-            setUseCases(['']);
-            setLimitations(['']);
-          }}
-        >
-          Submit another skill
-        </button>
       </div>
     );
   }

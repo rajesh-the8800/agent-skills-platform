@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import path from 'node:path';
 
+import { SkillStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 interface Finding {
@@ -149,9 +150,9 @@ export class ScannerService implements OnApplicationBootstrap {
       if (allFindings.length === 0) {
         await this.prisma.skill.update({
           where: { id: skillId },
-          data: { status: 'PUBLISHED', securityScanned: true },
+          data: { status: SkillStatus.AWAITING_REVIEW, securityScanned: true },
         });
-        this.logger.log(`Skill ${skillId} passed scan — published`);
+        this.logger.log(`Skill ${skillId} passed scan — awaiting admin review`);
       } else {
         const reason = allFindings
           .map((f) => `${f.file}:${f.line} — ${f.rule}`)
