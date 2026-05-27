@@ -51,6 +51,7 @@ model Skill {
   status           SkillStatus @default(PENDING)
   securityScanned  Boolean     @default(false)
   rejectionReason  String?
+  repoUrl          String?
   deletedAt        DateTime?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt

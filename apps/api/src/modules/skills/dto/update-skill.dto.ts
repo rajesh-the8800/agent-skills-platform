@@ -8,6 +8,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUrl,
   Matches,
   MaxLength,
   MinLength,
@@ -94,4 +95,10 @@ export class UpdateSkillDto {
   @IsString({ each: true })
   @MaxLength(300, { each: true })
   limitations?: string[];
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsUrl({ protocols: ['https'], require_protocol: true })
+  @MaxLength(500)
+  repoUrl?: string;
 }

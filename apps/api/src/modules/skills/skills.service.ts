@@ -192,6 +192,7 @@ export class SkillsService {
       ...(dto.supportedAgents !== undefined && { supportedAgents: dto.supportedAgents }),
       ...(dto.useCases !== undefined && { useCases: dto.useCases.map((s) => s.trim()).filter(Boolean) }),
       ...(dto.limitations !== undefined && { limitations: dto.limitations.map((s) => s.trim()).filter(Boolean) }),
+      ...(dto.repoUrl !== undefined && { repoUrl: dto.repoUrl || null }),
     };
 
     if (categoryIds !== undefined) {

@@ -32,7 +32,7 @@ export type SkillDetailExtras = {
 };
 
 
-export type SkillDetail = SkillCardDto & SkillDetailExtras & { databaseId: string; creatorId: string };
+export type SkillDetail = SkillCardDto & SkillDetailExtras & { databaseId: string; creatorId: string; repoUrl: string | null };
 
 const DETAILS: Record<string, SkillDetailExtras> = {};
 
@@ -149,7 +149,7 @@ export async function getSkillDetail(slug: string): Promise<SkillDetail | null> 
   const ratingHistogram = computeHistogram(raw.ratings) ?? extra.ratingHistogram;
   const views = typeof raw.viewCount === 'number' ? raw.viewCount : extra.views;
 
-  return { ...base, ...extra, reviews, ratingHistogram, views, version, databaseId: base.id, creatorId: (raw.creatorId as string) ?? '' };
+  return { ...base, ...extra, reviews, ratingHistogram, views, version, databaseId: base.id, creatorId: (raw.creatorId as string) ?? '', repoUrl: (raw.repoUrl as string | null) ?? null };
 }
 
 export async function getRelatedSkills(currentSlug: string, categories: string[], limit = 3): Promise<SkillCardDto[]> {

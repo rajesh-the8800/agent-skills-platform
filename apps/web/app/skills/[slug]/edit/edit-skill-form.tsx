@@ -35,6 +35,7 @@ export function EditSkillForm({ skill, userId, categories }: Props) {
   const [limitations, setLimitations] = React.useState<string[]>(
     skill.limitations.length > 0 ? skill.limitations : [''],
   );
+  const [repoUrl, setRepoUrl] = React.useState(skill.repoUrl ?? '');
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [saved, setSaved] = React.useState(false);
@@ -81,6 +82,7 @@ export function EditSkillForm({ skill, userId, categories }: Props) {
           categoryIds: Array.from(categoryIds),
           useCases: useCases.map((s) => s.trim()).filter(Boolean),
           limitations: limitations.map((s) => s.trim()).filter(Boolean),
+          repoUrl: repoUrl.trim() || null,
         }),
       });
 
@@ -141,6 +143,19 @@ export function EditSkillForm({ skill, userId, categories }: Props) {
             <label className="text-xs font-semibold text-neutral-600 dark:text-neutral-300">Full description</label>
             <textarea required minLength={20} maxLength={20000} rows={6} value={description} onChange={(e) => setDescription(e.target.value)}
               className="mt-1 w-full resize-y rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none ring-blue-500/30 focus:ring-2 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100" />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="text-xs font-semibold text-neutral-600 dark:text-neutral-300">
+              GitHub repository <span className="font-normal text-neutral-400">(optional)</span>
+            </label>
+            <input
+              type="url"
+              value={repoUrl}
+              onChange={(e) => setRepoUrl(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none ring-blue-500/30 focus:ring-2 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+              placeholder="https://github.com/you/your-skill"
+            />
+            <p className="mt-1 text-xs text-neutral-500">Share your source so users can inspect or contribute.</p>
           </div>
         </div>
       </section>

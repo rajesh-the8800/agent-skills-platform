@@ -8,6 +8,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUrl,
   Matches,
   MaxLength,
   MinLength,
@@ -105,4 +106,10 @@ export class SkillUploadDto {
   @IsString()
   @Matches(/^\d+\.\d+\.\d+$/)
   version!: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsUrl({ protocols: ['https'], require_protocol: true })
+  @MaxLength(500)
+  repoUrl?: string;
 }

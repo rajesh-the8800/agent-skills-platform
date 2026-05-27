@@ -193,6 +193,7 @@ export class SkillSubmissionsService {
           supportedAgents: toStringArray(dto.supportedAgents),
           useCases,
           limitations,
+          repoUrl: dto.repoUrl ?? null,
           installCount: 0,
           categories:
             categoryIds.length > 0
